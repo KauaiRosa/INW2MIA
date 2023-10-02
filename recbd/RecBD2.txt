@@ -1,0 +1,58 @@
+db.createCollection("pessoas")
+db.usuarios.insertMany([
+  { nome: "Alice", idade: 25, cidade: "São Paulo" },
+  { nome: "Alex", idade: 35, cidade: "Rio de Janeiro" },
+  { nome: "Carol", idade: 28, cidade: "Belo Horizonte" },
+  { nome: "Leandro", idade: 18, cidade: "Brasília" },
+  { nome: "Kauai", idade: 22, cidade: "Recife" }
+])
+
+db.createCollection("produtos")
+db.produtos.insertMany([
+  { descricao: "Celular", valor_unitario: 1000, estoque: 50 },
+  { descricao: "Tablet", valor_unitario: 500, estoque: 30 },
+  { descricao: "Notebook", valor_unitario: 1500, estoque: 20 },
+  { descricao: "Fone de Ouvido", valor_unitario: 100, estoque: 100 },
+  { descricao: "TV", valor_unitario: 800, estoque: 10 },
+  { descricao: "Câmera", valor_unitario: 300, estoque: 40 },
+  { descricao: "Video Game", valor_unitario: 400, estoque: 25 },
+  { descricao: "Impressora", valor_unitario: 200, estoque: 15 },
+  { descricao: "Mouse", valor_unitario: 20, estoque: 200 },
+  { descricao: "Teclado", valor_unitario: 30, estoque: 150 }
+])
+db.usuarios.aggregate([
+  { $group: { _id: "$cidade", totalClientes: { $sum: 1 } } },
+  { $sort: { totalClientes: -1 } },
+  { $limit: 1 }
+])
+db.usuarios.aggregate([
+  {
+    $bucket: {
+      groupBy: "$idade",
+      boundaries: [18, 25, 30, 35, 40],
+      default: "Outros",
+      output: {
+        totalClientes: { $sum: 1 }
+      }
+    }
+  }
+])
+db.produtos.aggregate([
+  { $sort: { estoque: -1 } },
+  { $limit: 1 }
+])
+db.produtos.aggregate([
+  { $sort: { valor_unitario: 1 } },
+  { $limit: 1 }
+])
+db.produtos.aggregate([
+  {
+    $project: {
+      _id: 0,
+      descricao: 1,
+      totalValor: { $multiply: ["$valor_unitario", "$estoque"] }
+    }
+  },
+  { $sort: { totalValor: -1 } },
+  { $limit: 5 }
+])
